@@ -1,0 +1,40 @@
+name: Publicar Catálogo VENEK
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: ${{ hashFiles('VENEK_Catalogo_Digital_2026_GitHub_Pages.zip') != '' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+      - name: Preparar GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Extrair catálogo original
+        run: |
+          mkdir -p _site
+          unzip -q VENEK_Catalogo_Digital_2026_GitHub_Pages.zip -d _site
+          touch _site/.nojekyll
+          test -f _site/index.html
+      - name: Enviar arquivos do site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Publicar site
+        id: deployment
+        uses: actions/deploy-pages@v4
